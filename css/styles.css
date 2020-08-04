@@ -84,6 +84,36 @@ body {
 }
 
 
+#contact .row{
+	padding:0.5em 0 0.5em 0;
+}
+
+#contact .row input{
+	/* border-radius: 10rem; */
+	padding: 0.5rem;
+}
+
+#contact .row textarea{
+	/* border-radius: 10rem; */
+	padding: 0.5rem;
+}
+
+#contact .row input[type="submit"] {
+	width:75%;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 hr {
   box-sizing: content-box;
   height: 0;
