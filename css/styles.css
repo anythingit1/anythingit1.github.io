@@ -78,6 +78,11 @@ body {
 	height:40px;
 }
 
+.srv-icons{
+	margin-bottom:24px;
+	height:4em;
+}
+
 
 hr {
   box-sizing: content-box;
