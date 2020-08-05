@@ -84,25 +84,13 @@ body {
 }
 
 
-#contact .row{
-	padding:0.5em 0 0.5em 0;
+.contactf-width{
+  width:100%;
 }
 
-#contact .row input{
-	/* border-radius: 10rem; */
-	padding: 0.5rem;
+.formbtn{
+  margin-top: 2em;
 }
-
-#contact .row textarea{
-	/* border-radius: 10rem; */
-	padding: 0.5rem;
-}
-
-#contact .row input[type="submit"] {
-	width:75%;
-}
-
-
 
 
 
@@ -10124,7 +10112,7 @@ hr.light {
   #mainNav.navbar-scrolled .navbar-brand {
     color: #212529;
   }
-  
+
   #mainNav.navbar-scrolled .navbar-brand:hover {
     color: #5c8a9e;
   }

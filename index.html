@@ -29,7 +29,7 @@
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ml-auto my-2 my-lg-0">
                         <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#about">Über uns</a></li>
-                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#services">Angebot</a></li>
+                        <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#services">Dienstleistungen</a></li>
                         <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#portfolio">Portfolio</a></li>
                         <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#contact">Kontakt</a></li>
                     </ul>
@@ -69,6 +69,22 @@
             <div class="container">
                 <h2 class="text-center mt-0">Dienstleistungen</h2>
                 <hr class="divider my-4" />
+
+                <div class="row">
+                  <div class="mt-5 text-center">
+                    <img src="bilder/ico-design.svg" class="srv-icons"/>
+                    <h3 class="h4 mb-2">Webseiten Design</h3>
+                    <p class="text-muted mb-0">Wenn Sie Ihren Webauftritt auffrischen wollen, jedoch kein Budget für eine Enteprise Level Webseite zur Verfügung haben, sind Sie bei uns genau richtig. Wir nehmen Ihnen die Erstellung einer Static Webseite ab und treffen alle Anpassungen um Ihren Wünschen und Anforderungen gerecht zu werden. Sie teilen uns Ihre Vorstellungen mit und wir setzen diese in die Tat um.</p>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="mt-5 text-center">
+                    <img src="bilder/ico-design.svg" class="srv-icons"/>
+                    <h3 class="h4 mb-2">Webseiten Design</h3>
+                    <p class="text-muted mb-0">Wenn Sie Ihren Webauftritt auffrischen wollen, jedoch kein Budget für eine Enteprise Level Webseite zur Verfügung haben, sind Sie bei uns genau richtig. Wir nehmen Ihnen die Erstellung einer Static Webseite ab und treffen alle Anpassungen um Ihren Wünschen und Anforderungen gerecht zu werden. Sie teilen uns Ihre Vorstellungen mit und wir setzen diese in die Tat um.</p>
+                  </div>
+                </div>
+
                 <div class="row">
 					<div class="col-lg-3 col-md-6 text-center">
                         <div class="mt-5">
@@ -183,57 +199,71 @@
                         <a class="d-block" href="mailto:info@anything-it.ch">info@anything-it.ch</a>
                     </div>
                 </div>
-			</div>
+                <div class="text-center formbtn">
+                  <a class="btn btn-primary btn-xl js-scroll-trigger" href="#contact-form">Zum Kontaktformular</a>
+                </div>
+      </div>
 		</section>
-		
-		
-		
-		<!-- <div class="container"> -->
-                <!-- <div class="row justify-content-center"> -->
-                    <!-- <div class="col-lg-8 text-center"> -->
-                        <!-- <h2 class="text-white mt-0">Wir haben was Sie brauchen!</h2> -->
-                        <!-- <hr class="divider light my-4" /> -->
+
+
 
 		<section class="page-section bg-primary" id="contact-form">
-			<div class="container">	
+			<div class="container">
 				<div class="row justify-content-center">
 					<div class="col-lg-8 text-center">
 						<h2 class="text-white mt-0">Kontaktformular</h2>
-						
-						
-						<form id="contact" action="https://formspree.io/aco.grcka@gmail.com" method="POST">
-							
-							
-							<div class="row">
-								<div class="col">
-									<input type="text" id="fname" name="firstname" placeholder="Vorname" required>
-								</div>
-								<div class="col">
-									<input type="text" id="lname" name="lastname" placeholder="Nachname" required>
-								</div>
-							</div>
-							<div class="row">
-								<div class="col">
-									<input type="text" id="tel" name="telefon" placeholder="Phone">
-								</div>
-								<div class="col">
-									<input type="email" name="_replyto" placeholder="E-Mail" required>
-								</div>
-							</div>
-							
-							<div class="row">
-								<textarea class="col" id="subject" name="subject" placeholder="Nachricht" required></textarea>
-							</div>
-							
-							<div class="row">
-								<input class="col btn btn-light btn-xl js-scroll-trigger" type="submit" value="Senden">
-							</div>
-							
-								
-							
-						</form>
-						
-						
+
+            <form id="contact-form" method="post" action="contact.php" role="form">
+
+    <div class="messages"></div>
+
+    <div class="controls">
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <input id="form_name" type="text" name="name" class="form-control" placeholder="*Vorname" required="required" data-error="*Vorname wird benötigt.">
+                    <div class="help-block with-errors"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <input id="form_lastname" type="text" name="surname" class="form-control" placeholder="*Nachname" required="required" data-error="*Nachname wird benötigt.">
+                    <div class="help-block with-errors"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <input id="form_email" type="email" name="email" class="form-control" placeholder="*E-Mail" required="required" data-error="*Gültige E-Mail Adresse benötigt.">
+                    <div class="help-block with-errors"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                  <input id="form_betreff" type="text" name="betreff" class="form-control" placeholder="*Betreff" required="required" data-error="*Betreff wird benötigt.">
+                  <div class="help-block with-errors"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <textarea id="form_message" name="message" class="form-control" placeholder="*Nachricht" rows="4" required="required" data-error="*Nachricht eingeben"></textarea>
+                    <div class="help-block with-errors"></div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <input type="submit" class="btn btn-light btn-send contactf-width" value="Senden">
+            </div>
+        </div>
+
+    </div>
+
+</form>
+
 					</div>
 				</div>
             </div>
