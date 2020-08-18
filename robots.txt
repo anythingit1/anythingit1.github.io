@@ -1,5 +1,4 @@
-# Group 1
-User-agent: *
+User-Agent: *
 Allow: /
 
-Sitemap: https://www.anything-it.ch/sitemap.txt
+Sitemap: https://www.anything-it.ch/sitemap.xml
