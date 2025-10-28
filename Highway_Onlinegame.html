@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highway - Das Kartenspiel</title>
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0B3D1B;
+            color: #fff; text-align: center;
+            padding: 1em; margin: 0;
+        }
+        #game-container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #FFD700; }
+
+        /* --- Spieler-Anzeige --- */
+        #players-display { display: flex; justify-content: center; align-items: flex-start; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
+        .player-card { background-color: rgba(0,0,0,0.3); border: 2px solid #555; border-radius: 10px; padding: 10px; width: 150px; transition: all 0.3s ease; }
+        .player-card.current-player { transform: scale(1.1); border-color: #FFD700; box-shadow: 0 0 15px #FFD700; }
+        .player-header { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .player-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5em; font-weight: bold; color: white; }
+        .player-name { font-size: 1.2em; font-weight: bold; }
+        .player-score { font-size: 1.1em; }
+        .turn-indicator { font-size: 0.9em; color: #FFD700; visibility: hidden; height: 0; }
+        .current-player .turn-indicator { visibility: visible; height: auto; }
+
+        /* --- Spielfeld-Layout --- */
+        #game-board { display: flex; flex-direction: column; gap: 20px; margin: 20px 0; }
+        .line-container { display: flex; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 10px; min-height: 140px; transition: box-shadow 0.3s; }
+        .longest-line { box-shadow: 0 0 15px 5px #FFD700; }
+        
+        /* --- Karten-Stile --- */
+        .card, .placeholder { width: 80px; height: 120px; margin: 0 5px; border-radius: 8px; box-sizing: border-box; }
+        .placeholder { border: 3px dashed #aaa; display: flex; justify-content: center; align-items: center; font-size: 3em; color: #aaa; cursor: pointer; transition: background-color 0.3s, border-color 0.3s; }
+        .placeholder:hover { background-color: rgba(255, 255, 255, 0.2); border-color: #fff; }
+        .placeholder.disabled { cursor: not-allowed; opacity: 0.5; pointer-events: none; }
+        .card { background-color: #f8f8f8; color: #333; padding: 5px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); animation: fadeIn 0.4s ease-out; text-align: center; }
+        .card-rank { font-size: 1.4em; font-weight: bold; }
+        .card-suit { font-size: 2.5em; line-height: 1; }
+        
+        /* --- Steuerung & Modals --- */
+        #game-controls { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 20px; padding: 10px; background-color: rgba(0,0,0,0.3); border-radius: 10px; }
+        #game-controls button, .modal-content button { padding: 12px 24px; font-size: 1.1em; border-radius: 5px; border: none; cursor: pointer; background-color: #FFD700; color: #0B3D1B; font-weight: bold; }
+        .guess-modal { position: absolute; transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; z-index: 100; display: flex; gap: 15px; }
+        .guess-modal button { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; }
+        .guess-modal button.higher { background-color: #2ecc71; }
+        .guess-modal button.lower { background-color: #e74c3c; }
+        .guess-modal button.equal { background-color: #3498db; }
+        .guess-modal button { color: white; }
+
+        /* --- Overlays --- */
+        .feedback-overlay, .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; z-index: 200; background-color: rgba(0,0,0,0.7); transition: opacity 0.3s ease; }
+        .feedback-overlay { opacity: 0; pointer-events: none; flex-direction: column; }
+        .feedback-overlay.visible { opacity: 1; }
+        .feedback-overlay.correct { background-color: rgba(46, 204, 113, 0.7); }
+        .feedback-overlay.incorrect { background-color: rgba(231, 76, 60, 0.7); }
+        .feedback-message { font-size: 8em; color: white; font-weight: bold; text-shadow: 4px 4px 8px rgba(0,0,0,0.5); transform: scale(0.5); opacity: 0; }
+        .feedback-overlay.visible .feedback-message { animation: popIn 0.5s forwards; }
+        .penalty-feedback { font-size: 3em; color: white; margin-top: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+
+        .modal-content { background-color: #0B3D1B; border: 2px solid #FFD700; padding: 30px; border-radius: 15px; text-align: center; }
+        .modal-content h2 { margin-top: 0; }
+        .modal-content button { margin: 10px; }
+        #end-game-results ol { list-style-position: inside; padding: 0; }
+        #player-management-list li { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 1.2em; }
+        #player-management-list button { background-color: #e74c3c; color: white; padding: 5px 10px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>🛣️ Highway 🛣️</h1>
+        <div id="players-display"></div>
+        <div id="game-board"></div>
+        <div id="game-controls">
+            <p>Karten im Stapel: <strong id="deck-count">36</strong></p>
+            <p>Karten in diesem Zug: <strong id="cards-placed">0</strong></p>
+            <button id="finish-turn-btn" style="display: none;">Zug beenden</button>
+        </div>
+    </div>
+    
+    <!-- Modals and Overlays -->
+    <div id="guess-container" style="display: none;"></div>
+    <div id="feedback-overlay" class="feedback-overlay">
+        <div id="feedback-message" class="feedback-message"></div>
+        <div id="penalty-feedback" class="penalty-feedback"></div>
+    </div>
+    <div id="end-game-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Spiel beendet!</h2>
+            <div id="end-game-results"></div>
+            <div class="end-game-actions">
+                <button onclick="restartGame()">Neues Spiel starten</button>
+                <button onclick="showPlayerManagement()">Spieler verwalten</button>
+            </div>
+        </div>
+    </div>
+    <div id="player-management-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Spieler verwalten</h2>
+            <ul id="player-management-list" style="list-style: none; padding: 0;"></ul>
+            <div>
+                <input type="text" id="new-player-name" placeholder="Neuer Spielername">
+                <button onclick="addPlayer()">Hinzufügen</button>
+            </div>
+            <button onclick="startNewManagedRound()">Neue Runde starten</button>
+        </div>
+    </div>
+
+    <script>
+        const suits = { 'Kreuz': { symbol: '♣', color: '#000000' }, 'Pik': { symbol: '♠', color: '#000000' }, 'Herz': { symbol: '♥', color: '#e74c3c' }, 'Karo': { symbol: '♦', color: '#e74c3c' } };
+        const ranks = { '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'Bube': 11, 'Dame': 12, 'König': 13, 'Ass': 14 };
+        const AVATAR_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c'];
+        
+        let deck = [], cardLines = [[], [], [], []], players = [], currentPlayerIndex = 0;
+        let cardsPlacedThisTurn = 0, longestLinePlayedThisTurn = false;
+        
+        function createDeck() { deck = []; for (const suitKey in suits) for (const rankKey in ranks) deck.push({ suit: suits[suitKey], rank: rankKey, value: ranks[rankKey] }); }
+        function shuffleDeck() { for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } }
+        function drawCard() { return deck.length > 0 ? deck.pop() : null; }
+        function getMaxLineLength() { return cardLines.length > 0 ? Math.max(...cardLines.map(line => line.length)) : 0; }
+
+        function renderAll() { renderPlayers(); renderBoard(); updateGameControls(); }
+        function renderPlayers() {
+            const playersDisplay = document.getElementById('players-display');
+            playersDisplay.innerHTML = '';
+            players.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                if (index === currentPlayerIndex) card.classList.add('current-player');
+                card.innerHTML = `<div class="player-header"><div class="player-avatar" style="background-color: ${player.color};">${player.name.charAt(0).toUpperCase()}</div><span class="player-name">${player.name}</span></div><div class="player-score">Strafpunkte: ${player.penaltyPoints}</div><div class="turn-indicator">Am Zug</div>`;
+                playersDisplay.appendChild(card);
+            });
+        }
+        function renderBoard() {
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+            const maxLineLength = getMaxLineLength();
+            for (let i = 0; i < cardLines.length; i++) {
+                const lineContainer = document.createElement('div');
+                lineContainer.className = 'line-container';
+                if (maxLineLength > 0 && cardLines[i].length === maxLineLength) lineContainer.classList.add('longest-line');
+                lineContainer.appendChild(createPlaceholder(i, 'left'));
+                cardLines[i].forEach(card => lineContainer.appendChild(createCardElement(card)));
+                lineContainer.appendChild(createPlaceholder(i, 'right'));
+                gameBoard.appendChild(lineContainer);
+            }
+        }
+        function createCardElement(card) { const div = document.createElement('div'); div.className = 'card'; div.innerHTML = `<div class="card-rank" style="color: ${card.suit.color};">${card.rank}</div><div class="card-suit">${card.suit.symbol}</div>`; return div; }
+        function createPlaceholder(line, side) { const p = document.createElement('div'); p.className = 'placeholder'; p.innerHTML = '<span>+</span>'; p.onclick = (e) => showGuessModal(e, line, side); return p; }
+        function updateGameControls() { document.getElementById('cards-placed').innerText = cardsPlacedThisTurn; document.getElementById('deck-count').innerText = deck.length; document.getElementById('finish-turn-btn').style.display = (cardsPlacedThisTurn >= 3 && longestLinePlayedThisTurn) ? 'inline-block' : 'none'; }
+        function showFeedback(message, type, penalty = '') { const o = document.getElementById('feedback-overlay'); o.className = 'feedback-overlay'; o.classList.add(type); o.querySelector('#feedback-message').textContent = message; o.querySelector('#penalty-feedback').textContent = penalty; o.classList.add('visible'); setTimeout(() => o.classList.remove('visible'), 1200); }
+        function togglePlaceholders(enabled) { document.querySelectorAll('.placeholder').forEach(p => p.classList.toggle('disabled', !enabled)); }
+
+        function showGuessModal(event, lineIndex, side) {
+            const existing = document.getElementById('guess-container'); if (existing) existing.remove();
+            const max = getMaxLineLength();
+            if (!longestLinePlayedThisTurn && max > 1 && cardLines[lineIndex].length < max) { alert(`Du musst zuerst eine Karte an eine der längsten Reihen legen!`); return; }
+            const modal = document.createElement('div'); modal.id = 'guess-container'; modal.className = 'guess-modal'; modal.style.left = `${event.clientX}px`; modal.style.top = `${event.clientY}px`;
+            modal.innerHTML = `<button class="higher" onclick="makeGuess(${lineIndex},'${side}','h')">Höher</button><button class="equal" onclick="makeGuess(${lineIndex},'${side}','e')">Gleich</button><button class="lower" onclick="makeGuess(${lineIndex},'${side}','l')">Tiefer</button>`;
+            document.body.appendChild(modal); event.stopPropagation();
+        }
+        
+        function makeGuess(lineIndex, side, guess) {
+            const existing = document.getElementById('guess-container'); if (existing) existing.remove();
+            if (!deck.length) return endGame();
+            togglePlaceholders(false);
+            const newCard = drawCard();
+            const adjCard = (side === 'left') ? cardLines[lineIndex][0] : cardLines[lineIndex][cardLines[lineIndex].length - 1];
+            let isCorrect = (guess === 'h' && newCard.value > adjCard.value) || (guess === 'l' && newCard.value < adjCard.value) || (guess === 'e' && newCard.value === adjCard.value);
+            
+            if (side === 'left') cardLines[lineIndex].unshift(newCard); else cardLines[lineIndex].push(newCard);
+            
+            if (isCorrect) {
+                if (cardLines[lineIndex].length >= getMaxLineLength()) longestLinePlayedThisTurn = true;
+                renderBoard(); showFeedback("RICHTIG!", "correct"); cardsPlacedThisTurn++;
+                setTimeout(() => { togglePlaceholders(true); updateGameControls(); renderPlayers(); if (!deck.length) endGame(); }, 1000);
+            } else {
+                renderBoard(); const penalty = cardLines[lineIndex].length;
+                setTimeout(() => {
+                    showFeedback("FALSCH!", "incorrect", `+${penalty} Strafpunkte`);
+                    setTimeout(() => {
+                        players[currentPlayerIndex].penaltyPoints += penalty;
+                        cardLines[lineIndex] = drawCard() ? [drawCard()] : [];
+                        cardsPlacedThisTurn = 0; longestLinePlayedThisTurn = false;
+                        renderAll(); togglePlaceholders(true); if (!deck.length) endGame();
+                    }, 1200);
+                }, 1500);
+            }
+        }
+
+        function nextTurn() { currentPlayerIndex = (currentPlayerIndex + 1) % players.length; cardsPlacedThisTurn = 0; longestLinePlayedThisTurn = false; renderAll(); }
+
+        function endGame() {
+            const sortedPlayers = [...players].sort((a, b) => a.penaltyPoints - b.penaltyPoints);
+            const resultsHtml = `<ol>${sortedPlayers.map(p => `<li>${p.name}: ${p.penaltyPoints} Punkte</li>`).join('')}</ol>`;
+            document.getElementById('end-game-results').innerHTML = resultsHtml;
+            document.getElementById('end-game-modal').style.display = 'flex';
+        }
+
+        function restartGame() {
+            document.getElementById('end-game-modal').style.display = 'none';
+            players.forEach(p => p.penaltyPoints = 0);
+            currentPlayerIndex = 0; cardsPlacedThisTurn = 0; longestLinePlayedThisTurn = false;
+            cardLines = [[], [], [], []];
+            createDeck(); shuffleDeck();
+            for (let i = 0; i < 4; i++) cardLines[i].push(drawCard());
+            renderAll();
+        }
+
+        function showPlayerManagement() {
+            document.getElementById('end-game-modal').style.display = 'none';
+            document.getElementById('player-management-modal').style.display = 'flex';
+            const list = document.getElementById('player-management-list');
+            list.innerHTML = '';
+            players.forEach((player, index) => {
+                list.innerHTML += `<li>${player.name} <button onclick="removePlayer(${index})">Entfernen</button></li>`;
+            });
+        }
+        function removePlayer(index) {
+            if (players.length > 2) { players.splice(index, 1); showPlayerManagement(); }
+            else { alert("Es müssen mindestens 2 Spieler im Spiel bleiben."); }
+        }
+        function addPlayer() {
+            const nameInput = document.getElementById('new-player-name');
+            if (nameInput.value.trim()) {
+                players.push({ name: nameInput.value.trim(), penaltyPoints: 0, color: AVATAR_COLORS[players.length % AVATAR_COLORS.length] });
+                nameInput.value = '';
+                showPlayerManagement();
+            }
+        }
+        function startNewManagedRound() {
+            document.getElementById('player-management-modal').style.display = 'none';
+            restartGame();
+        }
+
+        function initGame() {
+            let num = 0; while (num < 2 || isNaN(num)) num = parseInt(prompt("Anzahl der Spieler (mind. 2):"), 10);
+            for (let i = 0; i < num; i++) {
+                const name = prompt(`Name für Spieler ${i + 1}:`);
+                players.push({ name: name || `Spieler ${i+1}`, penaltyPoints: 0, color: AVATAR_COLORS[i % AVATAR_COLORS.length] });
+            }
+            document.getElementById('finish-turn-btn').onclick = nextTurn;
+            document.body.onclick = (e) => { if (e.target === document.body) { const m = document.getElementById('guess-container'); if (m) m.remove(); } };
+            restartGame();
+        }
+
+        initGame();
+    </script>
+
+</body>
+</html>
